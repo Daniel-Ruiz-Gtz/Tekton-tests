@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: echo-task
+spec:
+  params:
+    - name: repository
+    - name: revision
+      default: main
+  steps:
+    - name: clone-repo
+      image: alpine/git
+      script: |
+        #!/bin/sh
+        set -e
+        echo "Cloning $(params.repository) branch $(params.revision)"
+        git clone -b $(params.revision) $(params.repository) /workspace/source
+    - name: list-files
+      image: alpine
+      script: |
+        #!/bin/sh
+        echo "Listing files in repo:"
+        ls -la /workspace/source
+        echo "OSL config"
+        pwd
