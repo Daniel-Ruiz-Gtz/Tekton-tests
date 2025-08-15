@@ -13,4 +13,4 @@ spec:
         # Install pylint
         pip install pylint
         # Run pylint only on the testcases folder
-        pylint python/ || true
+        pylint --rcfile=.pylintrc testcases/*.py || true
