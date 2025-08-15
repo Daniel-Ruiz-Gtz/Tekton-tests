@@ -13,4 +13,5 @@ spec:
         # Install pylint
         pip install pylint
         # Run pylint only on the testcases folder
-        pylint "testcases/" || true
+        pylint $(find testcases/ -type f -name "*.py") || true
+
