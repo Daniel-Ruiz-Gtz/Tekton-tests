@@ -3,9 +3,20 @@ kind: Task
 metadata:
   name: lint-task
 spec:
+  params:
+    - name: repository
+    - name: revision
+      default: main
   workspaces:
     - name: source
   steps:
+    - name: clone-repo
+      image: alpine/git
+      script: |
+        #!/bin/sh
+        set -e
+        echo "Cloning $(params.repository) branch $(params.revision)"
+        git clone -b $(params.revision) $(params.repository) /workspace/source
     - name: run-pylint
       image: python:3.10
       workingDir: $(workspaces.source.path)

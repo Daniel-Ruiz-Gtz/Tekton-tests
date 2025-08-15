@@ -41,7 +41,7 @@ metadata:
 spec:
   params:
     - name: repository
-      value: "https://github.ibm.com/daniel-ruiz-gtz/iLabConfig"
+      value: "https://github.com/Daniel-Ruiz-Gtz/Tekton-tests"
     - name: revision
       value: "main"
 
