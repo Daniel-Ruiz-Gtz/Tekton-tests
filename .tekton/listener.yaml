@@ -1,0 +1,58 @@
+apiVersion: tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: lint-template
+spec:
+  params:
+    - name: repository
+      description: Git repository URL
+    - name: revision
+      description: Git branch
+      default: main
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: lint-pipeline-run-
+      spec:
+        pipelineRef:
+          name: lint-pipeline
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              metadata:
+                name: lint-pvc
+              spec:
+                accessModes: ["ReadWriteOnce"]
+                resources:
+                  requests:
+                    storage: 1Gi
+        params:
+          - name: repo-url
+            value: $(params.repository)
+          - name: branch
+            value: $(params.revision)
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: lint-binding
+spec:
+  params:
+    - name: repository
+      value: "https://github.ibm.com/daniel-ruiz-gtz/iLabConfig"
+    - name: revision
+      value: "main"
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: lint-listener
+spec:
+  triggers:
+    - binding:
+        name: lint-binding
+      template:
+        name: lint-template
