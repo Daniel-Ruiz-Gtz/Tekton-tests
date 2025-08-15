@@ -28,7 +28,7 @@ spec:
                   requests:
                     storage: 1Gi
         params:
-          - name: repo-url
+          - name: repository
             value: $(params.repository)
           - name: branch
             value: $(params.revision)
