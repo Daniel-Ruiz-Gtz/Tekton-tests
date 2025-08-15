@@ -5,7 +5,7 @@ def main():
 
     number = int(input("Give me a number and I will double it: "))
     print(f"Double of {number} is {number * 2}")
-    print(f"NEW CHANGE")
+    print(f"NEW CHANGE 2")
 
 if __name__ == "__main__":
     main()
