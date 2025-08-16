@@ -15,6 +15,8 @@ spec:
       script: |
         #!/bin/sh
         set -e
+        echo "Cleaning workspace..."
+        rm -rf /workspace/source/*
         echo "Cloning $(params.repository) branch $(params.revision)"
         git clone -b $(params.revision) $(params.repository) /workspace/source
     - name: run-pylint
