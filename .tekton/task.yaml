@@ -19,6 +19,7 @@ spec:
         rm -rf /workspace/source/*
         echo "Cloning $(params.repository) branch $(params.revision)"
         git clone -b $(params.revision) $(params.repository) /workspace/source
+        pwd
     - name: run-pylint
       image: python:3.10
       workingDir: $(workspaces.source.path)
@@ -27,4 +28,3 @@ spec:
         pip install pylint
         # Run pylint only on the testcases folder
         pylint $(find testcases/ -type f -name "*.py") || true
-
