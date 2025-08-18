@@ -26,6 +26,7 @@ spec:
       script: |
         # Install pylint
         pwd
+        find testcases/
         pip install pylint
         # Run pylint only on the testcases folder
         pylint $(find testcases/ -type f -name "*.py") || true
