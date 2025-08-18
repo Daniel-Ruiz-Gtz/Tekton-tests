@@ -25,6 +25,7 @@ spec:
       workingDir: $(workspaces.source.path)
       script: |
         # Install pylint
+        pwd
         pip install pylint
         # Run pylint only on the testcases folder
         pylint $(find testcases/ -type f -name "*.py") || true

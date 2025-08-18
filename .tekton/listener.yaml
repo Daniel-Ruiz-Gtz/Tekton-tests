@@ -30,5 +30,29 @@ spec:
         params:
           - name: repository
             value: $(params.repository)
-          - name: branch
+          - name: revision
             value: $(params.revision)
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: lint-binding
+spec:
+  params:
+    - name: repository
+      value: "https://github.com/Daniel-Ruiz-Gtz/Tekton-tests"
+    - name: revision
+      value: "main"
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: lint-listener
+spec:
+  triggers:
+    - binding:
+        name: lint-binding
+      template:
+        name: lint-template
