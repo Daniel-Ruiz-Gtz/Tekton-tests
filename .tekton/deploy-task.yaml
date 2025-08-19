@@ -23,4 +23,4 @@ spec:
       script: |
         #!/bin/sh
         echo "This is a deploy step..."
-        echo "Deploying commit from branch $(params.revision)"
+        echo "Deploying commit from branch $(params.revision) TEST"
