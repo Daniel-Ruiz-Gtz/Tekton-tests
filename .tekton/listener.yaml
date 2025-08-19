@@ -1,4 +1,3 @@
----
 apiVersion: tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
@@ -6,12 +5,7 @@ metadata:
 spec:
   params:
     - name: repository
-      description: Git repository URL
-    - name: branch
-      description: Git branch
-      default: main
-    - name: event-type
-      description: Type of event (push or pull_request)
+    - name: revision
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -33,10 +27,41 @@ spec:
         params:
           - name: repository
             value: $(params.repository)
-          - name: branch
-            value: $(params.branch)
-          - name: event-type
-            value: $(params.event-type)
+          - name: revision
+            value: $(params.revision)
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: deploy-template
+spec:
+  params:
+    - name: repository
+    - name: revision
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: deploy-pipeline-run-
+      spec:
+        pipelineRef:
+          name: deploy-pipeline
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              metadata:
+                name: deploy-pvc
+              spec:
+                accessModes: ["ReadWriteOnce"]
+                resources:
+                  requests:
+                    storage: 1Gi
+        params:
+          - name: repository
+            value: $(params.repository)
+          - name: revision
+            value: $(params.revision)
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -47,20 +72,49 @@ spec:
   params:
     - name: repository
       value: "https://github.com/Daniel-Ruiz-Gtz/Tekton-tests"
-    - name: branch
-      value: "$(body.ref)"             # Ej: refs/heads/main
-    - name: event-type
-      value: "$(header.X-GitHub-Event)"   # Ej: push o pull_request
+    - name: revision
+      value: "main"
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: deploy-binding
+spec:
+  params:
+    - name: repository
+      value: "https://github.com/Daniel-Ruiz-Gtz/Tekton-tests"
+    - name: revision
+      value: "main"
 
 ---
 apiVersion: tekton.dev/v1beta1
 kind: EventListener
 metadata:
-  name: lint-listener
+  name: ci-listener
 spec:
-  serviceAccountName: tekton-triggers-sa
   triggers:
-    - binding:
-        name: lint-binding
+    - name: pr-lint
+      bindings:
+        - ref: lint-binding
       template:
-        name: lint-template
+        ref: lint-template
+      interceptors:
+        - ref:
+            name: github
+          params:
+            - name: eventTypes
+              value:
+                - pull_request
+    - name: push-deploy
+      bindings:
+        - ref: deploy-binding
+      template:
+        ref: deploy-template
+      interceptors:
+        - ref:
+            name: github
+          params:
+            - name: eventTypes
+              value:
+                - push
