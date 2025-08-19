@@ -22,7 +22,7 @@ spec:
         git clone -b $(params.revision) $(params.repository) /workspace/source
     - name: lint
       image: python:3.11
-      workingDir: /workspace/shared-workspace
+      workingDir: $(workspaces.shared-workspace.path)/repo
       script: |
         #!/bin/sh
         set -e
