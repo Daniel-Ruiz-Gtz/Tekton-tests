@@ -1,3 +1,4 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
@@ -5,21 +6,42 @@ metadata:
 spec:
   params:
     - name: repository
-      description: Git repository URL
-    - name: revision
-      description: Git branch
-      default: main
+    - name: branch
+    - name: event-type
   workspaces:
     - name: shared-workspace
   tasks:
-    - name: lint
+    - name: run-lint
       taskRef:
         name: lint-task
-      workspaces:
-        - name: source
-          workspace: shared-workspace
       params:
         - name: repository
           value: $(params.repository)
-        - name: revision
-          value: $(params.revision)
+        - name: branch
+          value: $(params.branch)
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+      when:
+        - input: "$(params.event-type)"
+          operator: In
+          values: ["pull_request"]
+
+    - name: run-deploy
+      taskRef:
+        name: deploy-task
+      params:
+        - name: repository
+          value: $(params.repository)
+        - name: branch
+          value: $(params.branch)
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+      when:
+        - input: "$(params.event-type)"
+          operator: In
+          values: ["push"]
+        - input: "$(params.branch)"
+          operator: In
+          values: ["main"]

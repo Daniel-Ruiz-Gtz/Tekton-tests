@@ -1,3 +1,4 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -5,28 +6,47 @@ metadata:
 spec:
   params:
     - name: repository
-    - name: revision
-      default: main
+      description: Git repository URL
+    - name: branch
+      description: Branch to checkout
   workspaces:
-    - name: source
+    - name: shared-workspace
   steps:
-    - name: clone-repo
+    - name: git-clone
       image: alpine/git
       script: |
         #!/bin/sh
-        set -e
         echo "Cleaning workspace..."
         rm -rf /workspace/source/*
         echo "Cloning $(params.repository) branch $(params.revision)"
         git clone -b $(params.revision) $(params.repository) /workspace/source
-        pwd
-    - name: run-pylint
-      image: python:3.10
-      workingDir: $(workspaces.source.path)
+
+    - name: run-lint
+      image: python:3.9
+      workingDir: $(workspaces.shared-workspace.path)/repo
       script: |
-        # Install pylint
-        pwd
-        find testcases/
+        #!/bin/sh
+        set -e
         pip install pylint
         # Run pylint only on the testcases folder
         pylint $(find testcases/ -type f -name "*.py") || true
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-task
+spec:
+  params:
+    - name: repository
+      description: Git repository URL
+    - name: branch
+      description: Branch to checkout
+  workspaces:
+    - name: shared-workspace
+  steps:
+    - name: echo-deploy
+      image: alpine
+      script: |
+        #!/bin/sh
+        echo "This is a deploy step (branch: $(params.branch))"

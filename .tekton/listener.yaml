@@ -1,3 +1,4 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
@@ -6,9 +7,11 @@ spec:
   params:
     - name: repository
       description: Git repository URL
-    - name: revision
+    - name: branch
       description: Git branch
       default: main
+    - name: event-type
+      description: Type of event (push or pull_request)
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -30,8 +33,10 @@ spec:
         params:
           - name: repository
             value: $(params.repository)
-          - name: revision
-            value: $(params.revision)
+          - name: branch
+            value: $(params.branch)
+          - name: event-type
+            value: $(params.event-type)
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -42,8 +47,10 @@ spec:
   params:
     - name: repository
       value: "https://github.com/Daniel-Ruiz-Gtz/Tekton-tests"
-    - name: revision
-      value: "main"
+    - name: branch
+      value: "$(body.ref)"             # Ej: refs/heads/main
+    - name: event-type
+      value: "$(header.X-GitHub-Event)"   # Ej: push o pull_request
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -51,6 +58,7 @@ kind: EventListener
 metadata:
   name: lint-listener
 spec:
+  serviceAccountName: tekton-triggers-sa
   triggers:
     - binding:
         name: lint-binding
