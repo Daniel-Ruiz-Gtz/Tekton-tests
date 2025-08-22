@@ -1,22 +1,21 @@
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
-  name: ci-template
+  name: push-template
 spec:
   params:
     - name: repository-url
     - name: revision
     - name: ref
     - name: event-type
-    - name: action
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        generateName: ci-pipeline-run-
+        generateName: push-pipeline-run-
       spec:
         pipelineRef:
-          name: ci-pipeline
+          name: push-pipeline
         params:
           - name: repository-url
             value: $(tt.params.repository-url)
@@ -26,13 +25,11 @@ spec:
             value: $(tt.params.ref)
           - name: event-type
             value: $(tt.params.event-type)
-          - name: action
-            value: $(tt.params.action)
         workspaces:
           - name: shared-workspace
             volumeClaimTemplate:
               metadata:
-                name: ci-ws
+                name: push-ws
               spec:
                 accessModes: ["ReadWriteOnce"]
                 resources:
@@ -53,39 +50,15 @@ spec:
       value: $(body.ref)
     - name: event-type
       value: push
-    - name: action
-      value: ""
----
-apiVersion: triggers.tekton.dev/v1beta1
-kind: TriggerBinding
-metadata:
-  name: pr-binding
-spec:
-  params:
-    - name: repository-url
-      value: $(body.pull_request.head.repo.clone_url)
-    - name: revision
-      value: $(body.pull_request.head.ref)
-    - name: ref
-      value: $(body.pull_request.base.ref)
-    - name: event-type
-      value: pull_request
-    - name: action
-      value: $(body.action)
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener
 metadata:
-  name: ci-listener
+  name: push-listener
 spec:
   triggers:
-    - name: pr-lint
-      bindings:
-        - ref: pr-binding
-      template:
-        ref: ci-template
-    - name: push-deploy
+    - name: on-push
       bindings:
         - ref: push-binding
       template:
-        ref: ci-template
+        ref: push-template

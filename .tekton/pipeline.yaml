@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: ci-pipeline
+  name: push-pipeline
 spec:
   params:
     - name: repository-url
@@ -10,13 +10,8 @@ spec:
       type: string
     - name: ref
       type: string
-      default: ""
     - name: event-type
       type: string
-      default: ""
-    - name: action
-      type: string
-      default: ""
   workspaces:
     - name: shared-workspace
   tasks:
@@ -32,8 +27,6 @@ spec:
           value: $(params.ref)
         - name: event-type
           value: $(params.event-type)
-        - name: action
-          value: $(params.action)
 
     - name: git-clone
       runAfter: [show-params]
@@ -48,27 +41,12 @@ spec:
         - name: output
           workspace: shared-workspace
 
-    - name: lint
-      runAfter: [git-clone]
-      when:
-        - input: "$(params.event-type)"
-          operator: in
-          values: ["pull_request"]
-        - input: "$(params.action)"
-          operator: in
-          values: ["opened","synchronize","reopened"]
-      taskRef:
-        name: lint-task
-      workspaces:
-        - name: source
-          workspace: shared-workspace
-
     - name: deploy
       runAfter: [git-clone]
       when:
-        - input: "$(params.revision)"
+        - input: "$(params.ref)"
           operator: in
-          values: ["main"]
+          values: ["refs/heads/main"]
       taskRef:
         name: deploy-task
       workspaces:
