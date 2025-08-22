@@ -23,6 +23,23 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
+  name: lint-task
+spec:
+  params:
+    - name: repository-url
+  workspaces:
+    - name: source
+  steps:
+    - name: run-lint
+      image: python:3.9
+      script: |
+        #!/bin/sh
+        echo "Running lint on repo: $(params.repository-url)"
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
   name: git-clone-task
 spec:
   params:
