@@ -18,7 +18,7 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        echo "Clone (dummy)" || true
+        echo "Clone (dummy) V2" || true
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
