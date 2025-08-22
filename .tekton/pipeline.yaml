@@ -12,7 +12,6 @@ spec:
   workspaces:
     - name: shared-workspace
   tasks:
-<<<<<<< HEAD
     - name: clone
       taskRef:
         name: git-clone
@@ -21,34 +20,12 @@ spec:
           value: $(params.repository-url)
         - name: revision
           value: $(params.revision)
-=======
-    - name: git-clone
-      taskRef:
-        name: git-clone-task
-      params:
-        - name: url
-          value: $(params.repository-url)
-        - name: rev
-          value: $(params.revision)
-      workspaces:
-        - name: output
-          workspace: shared-workspace
-
-    - name: lint
-      runAfter: [git-clone]
->>>>>>> parent of 3e5d103 (Test)
       when:
         - input: "$(params.event-type)"
-          operator: In
+          operator: in
           values: ["pull_request"]
-<<<<<<< HEAD
 
     - name: lint
-=======
-        - input: "$(params.action)"
-          operator: In
-          values: ["opened","synchronize","reopened"]
->>>>>>> parent of 3e5d103 (Test)
       taskRef:
         name: lint
       runAfter: ["clone"]
@@ -58,17 +35,6 @@ spec:
           values: ["pull_request"]
 
     - name: deploy
-<<<<<<< HEAD
-=======
-      runAfter: [git-clone]
-      when:
-        - input: "$(params.event-type)"
-          operator: In
-          values: ["push"]
-        - input: "$(params.revision)"
-          operator: In
-          values: ["main"]
->>>>>>> parent of 3e5d103 (Test)
       taskRef:
         name: deploy
       when:
