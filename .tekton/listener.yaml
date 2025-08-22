@@ -78,27 +78,14 @@ kind: EventListener
 metadata:
   name: ci-listener
 spec:
-  serviceAccountName: tekton-triggers-sa
   triggers:
     - name: pr-lint
       bindings:
         - ref: pr-binding
       template:
         ref: ci-template
-      interceptors:
-        - ref:
-            name: github
-          params:
-            - name: eventTypes
-              value: ["pull_request"]
     - name: push-deploy
       bindings:
         - ref: push-binding
       template:
         ref: ci-template
-      interceptors:
-        - ref:
-            name: github
-          params:
-            - name: eventTypes
-              value: ["push"]

@@ -2,13 +2,35 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
+  name: show-params-task
+spec:
+  params:
+    - name: repository-url
+    - name: revision
+    - name: ref
+    - name: event-type
+    - name: action
+  steps:
+    - name: echo-params
+      image: alpine:3.19
+      script: |
+        #!/bin/sh
+        echo ">>> [SHOW PARAMS]"
+        echo "repository-url=$(params.repository-url)"
+        echo "revision=$(params.revision)"
+        echo "ref=$(params.ref)"
+        echo "event-type=$(params.event-type)"
+        echo "action=$(params.action)"
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
   name: git-clone-task
 spec:
   params:
     - name: url
-      type: string
     - name: rev
-      type: string
   workspaces:
     - name: output
   steps:
@@ -17,10 +39,10 @@ spec:
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
-        echo ">>> [GIT CLONE TASK]"
-        echo "Cloning repo from: $(params.url)"
+        echo ">>> [GIT CLONE TASK - DUMMY]"
+        echo "Would clone: $(params.url)"
         echo "Revision: $(params.rev)"
-        echo "Files would be placed into $(workspaces.output.path)/source"
+        echo "Target dir: $(workspaces.output.path)/source"
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -36,9 +58,8 @@ spec:
       workingDir: $(workspaces.source.path)
       script: |
         #!/bin/sh
-        echo ">>> [LINT TASK]"
-        echo "Running pylint (dummy) in $(workspaces.source.path)/source/testcases"
-        echo "This is where the linting would happen."
+        echo ">>> [LINT TASK - DUMMY]"
+        echo "Would lint: $(workspaces.source.path)/source/testcases"
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -54,5 +75,5 @@ spec:
       workingDir: $(workspaces.source.path)
       script: |
         #!/bin/sh
-        echo ">>> [DEPLOY TASK]"
-        echo "This is where the deploy process would run for branch main."
+        echo ">>> [DEPLOY TASK - DUMMY]"
+        echo "Deploy for branch 'main'"

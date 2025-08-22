@@ -20,7 +20,23 @@ spec:
   workspaces:
     - name: shared-workspace
   tasks:
+    - name: show-params
+      taskRef:
+        name: show-params-task
+      params:
+        - name: repository-url
+          value: $(params.repository-url)
+        - name: revision
+          value: $(params.revision)
+        - name: ref
+          value: $(params.ref)
+        - name: event-type
+          value: $(params.event-type)
+        - name: action
+          value: $(params.action)
+
     - name: git-clone
+      runAfter: [show-params]
       taskRef:
         name: git-clone-task
       params:
@@ -36,10 +52,10 @@ spec:
       runAfter: [git-clone]
       when:
         - input: "$(params.event-type)"
-          operator: In
+          operator: in
           values: ["pull_request"]
         - input: "$(params.action)"
-          operator: In
+          operator: in
           values: ["opened","synchronize","reopened"]
       taskRef:
         name: lint-task
@@ -50,11 +66,8 @@ spec:
     - name: deploy
       runAfter: [git-clone]
       when:
-        - input: "$(params.event-type)"
-          operator: In
-          values: ["push"]
         - input: "$(params.revision)"
-          operator: In
+          operator: in
           values: ["main"]
       taskRef:
         name: deploy-task
