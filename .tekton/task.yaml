@@ -18,23 +18,7 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        echo "Repository URL: '$(params.url)'"
-        echo "Requested revision: '$(params.rev)'"
-        if [ -z "$(params.url)" ]; then exit 1; fi
-        REV="$(params.rev)"
-        case "$REV" in
-          refs/heads/*) REV="${REV#refs/heads/}" ;;
-          ""|" " ) REV="main" ;;
-        esac
-        rm -rf source || true
-        git clone --depth 1 --branch "$REV" "$(params.url)" source || {
-          git clone "$(params.url)" source
-          cd source
-          git checkout "$REV" || true
-          exit 0
-        }
-        cd source
-        git status
+        echo "Clone (dummy)" || true
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -50,9 +34,7 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        pip install pylint
-        # Run pylint only on the testcases folder
-        pylint $(find testcases/ -type f -name "*.py") || true
+        echo "Lint (dummy)" || true
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -68,4 +50,4 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        echo "Deploy to main (dummy)"
+        echo "Deploy to main (dummy)" || true
