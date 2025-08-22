@@ -1,41 +1,54 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: ci-pipeline
+  name: push-pipeline
 spec:
   params:
     - name: repository-url
+      type: string
     - name: revision
+      type: string
     - name: ref
+      type: string
     - name: event-type
-    - name: action
+      type: string
   workspaces:
     - name: shared-workspace
   tasks:
-    - name: clone
+    - name: show-params
       taskRef:
-        name: git-clone-dummy
-      when:
-        - input: "$(params.event-type)"
-          operator: in
-          values: ["pull_request"]
+        name: show-params-task
+      params:
+        - name: repository-url
+          value: $(params.repository-url)
+        - name: revision
+          value: $(params.revision)
+        - name: ref
+          value: $(params.ref)
+        - name: event-type
+          value: $(params.event-type)
 
-    - name: lint
+    - name: git-clone
+      runAfter: [show-params]
       taskRef:
-        name: lint-dummy
-      runAfter: ["clone"]
-      when:
-        - input: "$(params.event-type)"
-          operator: in
-          values: ["pull_request"]
+        name: git-clone-task
+      params:
+        - name: url
+          value: $(params.repository-url)
+        - name: rev
+          value: $(params.revision)
+      workspaces:
+        - name: output
+          workspace: shared-workspace
 
     - name: deploy
-      taskRef:
-        name: deploy-dummy
+      runAfter: [git-clone]
       when:
-        - input: "$(params.event-type)"
-          operator: in
-          values: ["push"]
         - input: "$(params.ref)"
           operator: in
           values: ["refs/heads/main"]
+      taskRef:
+        name: deploy-task
+      workspaces:
+        - name: source
+          workspace: shared-workspace
