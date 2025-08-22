@@ -54,7 +54,7 @@ spec:
 apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener
 metadata:
-  name: push-listener
+  name: ci-listener
 spec:
   triggers:
     - name: on-push
