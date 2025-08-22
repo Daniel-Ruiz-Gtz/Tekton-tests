@@ -39,7 +39,7 @@ spec:
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: push-binding
+  name: ci-listener
 spec:
   params:
     - name: repository-url
@@ -61,4 +61,4 @@ spec:
       bindings:
         - ref: push-binding
       template:
-        ref: push-template
+        ref: ci-listener
