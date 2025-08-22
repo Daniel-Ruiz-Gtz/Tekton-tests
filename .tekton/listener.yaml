@@ -1,4 +1,3 @@
----
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
@@ -6,9 +5,10 @@ metadata:
 spec:
   params:
     - name: repository-url
-    - name: ref                  
-    - name: event-type           
-    - name: action               
+    - name: revision
+    - name: ref
+    - name: event-type
+    - name: action
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -20,6 +20,8 @@ spec:
         params:
           - name: repository-url
             value: $(tt.params.repository-url)
+          - name: revision
+            value: $(tt.params.revision)
           - name: ref
             value: $(tt.params.ref)
           - name: event-type
@@ -36,7 +38,6 @@ spec:
                 resources:
                   requests:
                     storage: 1Gi
-
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
@@ -46,13 +47,14 @@ spec:
   params:
     - name: repository-url
       value: $(body.repository.clone_url)
+    - name: revision
+      value: $(body.repository.default_branch)
     - name: ref
-      value: $(body.ref)                     
+      value: $(body.ref)
     - name: event-type
-      value: $(header.X-GitHub-Event)        
+      value: $(header.X-GitHub-Event)
     - name: action
-      value: ""                             
-
+      value: ""
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
@@ -62,13 +64,14 @@ spec:
   params:
     - name: repository-url
       value: $(body.pull_request.head.repo.clone_url)
+    - name: revision
+      value: $(body.pull_request.head.ref)
     - name: ref
-      value: $(body.pull_request.head.ref)  
+      value: $(body.pull_request.base.ref)
     - name: event-type
-      value: $(header.X-GitHub-Event)        
+      value: $(header.X-GitHub-Event)
     - name: action
-      value: $(body.action)                  
-
+      value: $(body.action)
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener

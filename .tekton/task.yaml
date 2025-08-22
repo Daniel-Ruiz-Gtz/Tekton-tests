@@ -18,21 +18,23 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        echo "Cloning: $(params.url)"
-        rm -rf source .git || true
-        git clone --no-checkout $(params.url) source
-        cd source
-        # normaliza: si viene refs/heads/X -> usa X
+        echo "Repository URL: '$(params.url)'"
+        echo "Requested revision: '$(params.rev)'"
+        if [ -z "$(params.url)" ]; then exit 1; fi
         REV="$(params.rev)"
         case "$REV" in
-          refs/heads/*) BRANCH="${REV#refs/heads/}" ;;
-          *)             BRANCH="$REV" ;;
+          refs/heads/*) REV="${REV#refs/heads/}" ;;
+          ""|" " ) REV="main" ;;
         esac
-        echo "Checking out: $BRANCH"
-        git checkout -B "$BRANCH" "origin/$BRANCH" 2>/dev/null || git checkout "$BRANCH" || true
-        # si no existía remoto (PR desde fork), intenta checkout por nombre local
+        rm -rf source || true
+        git clone --depth 1 --branch "$REV" "$(params.url)" source || {
+          git clone "$(params.url)" source
+          cd source
+          git checkout "$REV" || true
+          exit 0
+        }
+        cd source
         git status
-
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -48,19 +50,9 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        echo "Installing pylint..."
-        pip install --no-cache-dir pylint
-        echo "Repo root:"
-        pwd; ls -la
-        echo "Running pylint on all *.py..."
-        FILES="$(find . -type f -name '*.py' | tr '\n' ' ')"
-        if [ -z "$FILES" ]; then
-          echo "No Python files found. Exiting successfully."
-          exit 0
-        fi
-        # no queremos fallar el pipeline por estilo; quita '|| true' si quieres que falle
-        pylint $FILES || true
-
+        pip install pylint
+        # Run pylint only on the testcases folder
+        pylint $(find testcases/ -type f -name "*.py") || true
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -76,5 +68,4 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        echo "🚀 This is a deploy to main"
-        echo "Here you would run your real deployment command"
+        echo "Deploy to main (dummy)"

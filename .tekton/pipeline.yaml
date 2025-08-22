@@ -6,6 +6,8 @@ spec:
   params:
     - name: repository-url
       type: string
+    - name: revision
+      type: string
     - name: ref
       type: string
     - name: event-type
@@ -14,7 +16,6 @@ spec:
       type: string
   workspaces:
     - name: shared-workspace
-
   tasks:
     - name: git-clone
       taskRef:
@@ -23,11 +24,10 @@ spec:
         - name: url
           value: $(params.repository-url)
         - name: rev
-          value: $(params.ref)
+          value: $(params.revision)
       workspaces:
         - name: output
           workspace: shared-workspace
-
     - name: lint
       runAfter: [ git-clone ]
       when:
@@ -42,7 +42,6 @@ spec:
       workspaces:
         - name: source
           workspace: shared-workspace
-
     - name: deploy
       runAfter: [ git-clone ]
       when:
