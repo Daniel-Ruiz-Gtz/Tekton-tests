@@ -1,6 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
+<<<<<<< HEAD
   name: git-clone
 spec:
   params:
@@ -19,11 +20,30 @@ kind: Task
 metadata:
   name: lint
 spec:
+=======
+  name: git-clone-task
+spec:
+  params:
+    - name: url
+      type: string
+    - name: rev
+      type: string
+  workspaces:
+    - name: output
+>>>>>>> parent of 3e5d103 (Test)
   steps:
     - name: echo
       image: alpine:3.18
       script: |
+<<<<<<< HEAD
         echo "[LINT] Running pylint inside testcases/ folder..."
+=======
+        #!/bin/sh
+        echo ">>> [GIT CLONE TASK]"
+        echo "Cloning repo from: $(params.url)"
+        echo "Revision: $(params.rev)"
+        echo "Files would be placed into $(workspaces.output.path)/source"
+>>>>>>> parent of 3e5d103 (Test)
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -35,4 +55,28 @@ spec:
     - name: echo
       image: alpine:3.18
       script: |
+<<<<<<< HEAD
         echo "[DEPLOY] Deploy triggered by push to main"
+=======
+        #!/bin/sh
+        echo ">>> [LINT TASK]"
+        echo "Running pylint (dummy) in $(workspaces.source.path)/source/testcases"
+        echo "This is where the linting would happen."
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-task
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: echo-deploy
+      image: alpine:3.19
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/sh
+        echo ">>> [DEPLOY TASK]"
+        echo "This is where the deploy process would run for branch main."
+>>>>>>> parent of 3e5d103 (Test)
