@@ -59,6 +59,6 @@ spec:
   triggers:
     - name: on-push
       bindings:
-        - ref: push-binding
+        - ref: ci-listener
       template:
         ref: ci-listener
