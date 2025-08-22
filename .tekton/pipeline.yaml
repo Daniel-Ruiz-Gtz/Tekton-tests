@@ -50,6 +50,9 @@ spec:
     - name: deploy
       runAfter: [git-clone]
       when:
+        - input: "$(params.event-type)"
+          operator: In
+          values: ["push"]
         - input: "$(params.revision)"
           operator: In
           values: ["main"]

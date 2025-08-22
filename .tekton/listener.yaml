@@ -52,7 +52,7 @@ spec:
     - name: ref
       value: $(body.ref)
     - name: event-type
-      value: $(header.X-GitHub-Event)
+      value: push
     - name: action
       value: ""
 ---
@@ -69,7 +69,7 @@ spec:
     - name: ref
       value: $(body.pull_request.base.ref)
     - name: event-type
-      value: $(header.X-GitHub-Event)
+      value: pull_request
     - name: action
       value: $(body.action)
 ---
@@ -90,7 +90,7 @@ spec:
             name: github
           params:
             - name: eventTypes
-              value: [ "pull_request" ]
+              value: ["pull_request"]
     - name: push-deploy
       bindings:
         - ref: push-binding
@@ -101,4 +101,4 @@ spec:
             name: github
           params:
             - name: eventTypes
-              value: [ "push" ]
+              value: ["push"]

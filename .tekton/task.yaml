@@ -12,13 +12,16 @@ spec:
   workspaces:
     - name: output
   steps:
-    - name: clone
-      image: alpine/git
+    - name: echo-clone
+      image: alpine:3.19
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
-        set -e
-        echo "Clone (dummy) V2" || true
+        echo ">>> [GIT CLONE TASK]"
+        echo "Cloning repo from: $(params.url)"
+        echo "Revision: $(params.rev)"
+        echo "Files would be placed into $(workspaces.output.path)/source"
+
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -28,13 +31,15 @@ spec:
   workspaces:
     - name: source
   steps:
-    - name: run-pylint
-      image: python:3.11
-      workingDir: $(workspaces.source.path)/source
+    - name: echo-lint
+      image: alpine:3.19
+      workingDir: $(workspaces.source.path)
       script: |
         #!/bin/sh
-        set -e
-        echo "Lint (dummy)" || true
+        echo ">>> [LINT TASK]"
+        echo "Running pylint (dummy) in $(workspaces.source.path)/source/testcases"
+        echo "This is where the linting would happen."
+
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -46,8 +51,8 @@ spec:
   steps:
     - name: echo-deploy
       image: alpine:3.19
-      workingDir: $(workspaces.source.path)/source
+      workingDir: $(workspaces.source.path)
       script: |
         #!/bin/sh
-        set -e
-        echo "Deploy to main (dummy)" || true
+        echo ">>> [DEPLOY TASK]"
+        echo "This is where the deploy process would run for branch main."
