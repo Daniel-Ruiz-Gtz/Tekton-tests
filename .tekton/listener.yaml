@@ -1,45 +1,19 @@
 apiVersion: triggers.tekton.dev/v1beta1
-kind: TriggerTemplate
+kind: EventListener
 metadata:
-  name: push-template
+  name: ci-listener
 spec:
-  params:
-    - name: repository-url
-    - name: revision
-    - name: ref
-    - name: event-type
-  resourcetemplates:
-    - apiVersion: tekton.dev/v1beta1
-      kind: PipelineRun
-      metadata:
-        generateName: push-pipeline-run-
-      spec:
-        pipelineRef:
-          name: push-pipeline
-        params:
-          - name: repository-url
-            value: $(tt.params.repository-url)
-          - name: revision
-            value: $(tt.params.revision)
-          - name: ref
-            value: $(tt.params.ref)
-          - name: event-type
-            value: $(tt.params.event-type)
-        workspaces:
-          - name: shared-workspace
-            volumeClaimTemplate:
-              metadata:
-                name: push-ws
-              spec:
-                accessModes: ["ReadWriteOnce"]
-                resources:
-                  requests:
-                    storage: 1Gi
+  triggers:
+    - name: ci-trigger
+      bindings:
+        - ref: ci-binding
+      template:
+        ref: ci-template
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: push-binding
+  name: ci-binding
 spec:
   params:
     - name: repository-url
@@ -49,16 +23,40 @@ spec:
     - name: ref
       value: $(body.ref)
     - name: event-type
-      value: push
+      value: $(header['x-github-event'])
+    - name: action
+      value: $(body.action)
 ---
 apiVersion: triggers.tekton.dev/v1beta1
-kind: EventListener
+kind: TriggerTemplate
 metadata:
-  name: ci-listener
+  name: ci-template
 spec:
-  triggers:
-    - name: on-push
-      bindings:
-        - ref: push-binding
-      template:
-        ref: push-template
+  params:
+    - name: repository-url
+    - name: revision
+    - name: ref
+    - name: event-type
+    - name: action
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: ci-pipeline-run-
+      spec:
+        pipelineRef:
+          name: ci-pipeline
+        params:
+          - name: repository-url
+            value: $(tt.params.repository-url)
+          - name: revision
+            value: $(tt.params.revision)
+          - name: ref
+            value: $(tt.params.ref)
+          - name: event-type
+            value: $(tt.params.event-type)
+          - name: action
+            value: $(tt.params.action)
+        workspaces:
+          - name: shared-workspace
+            emptyDir: {}

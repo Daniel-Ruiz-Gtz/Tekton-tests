@@ -1,58 +1,37 @@
----
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: show-params-task
+  name: git-clone-dummy
 spec:
   params:
     - name: repository-url
     - name: revision
-    - name: ref
-    - name: event-type
   steps:
-    - name: echo-params
-      image: alpine:3.19
+    - name: echo
+      image: alpine:3.18
       script: |
-        #!/bin/sh
-        echo "repository-url=$(params.repository-url)"
-        echo "revision=$(params.revision)"
-        echo "ref=$(params.ref)"
-        echo "event-type=$(params.event-type)"
+        echo "[GIT CLONE] Would clone $(params.repository-url) revision $(params.revision)"
 
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: git-clone-task
+  name: lint-dummy
 spec:
-  params:
-    - name: url
-    - name: rev
-  workspaces:
-    - name: output
   steps:
-    - name: echo-clone
-      image: alpine:3.19
-      workingDir: $(workspaces.output.path)
+    - name: echo
+      image: alpine:3.18
       script: |
-        #!/bin/sh
-        echo "[GIT CLONE DUMMY]"
-        echo "URL=$(params.url)"
-        echo "REV=$(params.rev)"
-        echo "TARGET=$(workspaces.output.path)/source"
+        echo "[LINT] Would run pylint inside testcases/ folder"
 
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: deploy-task
+  name: deploy-dummy
 spec:
-  workspaces:
-    - name: source
   steps:
-    - name: echo-deploy
-      image: alpine:3.19
-      workingDir: $(workspaces.source.path)
+    - name: echo
+      image: alpine:3.18
       script: |
-        #!/bin/sh
-        echo "[DEPLOY DUMMY] running because ref == refs/heads/main"
+        echo "[DEPLOY] Would deploy application on push to main"
