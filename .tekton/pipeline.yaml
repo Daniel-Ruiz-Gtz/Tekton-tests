@@ -14,12 +14,7 @@ spec:
   tasks:
     - name: clone
       taskRef:
-        name: git-clone
-      params:
-        - name: repository-url
-          value: $(params.repository-url)
-        - name: revision
-          value: $(params.revision)
+        name: git-clone-dummy
       when:
         - input: "$(params.event-type)"
           operator: in
@@ -27,7 +22,7 @@ spec:
 
     - name: lint
       taskRef:
-        name: lint
+        name: lint-dummy
       runAfter: ["clone"]
       when:
         - input: "$(params.event-type)"
@@ -36,7 +31,7 @@ spec:
 
     - name: deploy
       taskRef:
-        name: deploy
+        name: deploy-dummy
       when:
         - input: "$(params.event-type)"
           operator: in
