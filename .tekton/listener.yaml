@@ -39,7 +39,7 @@ spec:
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: ci-binding
+  name: ci-binding-push
 spec:
   params:
     - name: repository-url
@@ -49,7 +49,22 @@ spec:
     - name: ref
       value: $(body.ref)
     - name: event-type
-      value: push
+      value: $(header['x-github-event'])
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: ci-binding-pr
+spec:
+  params:
+    - name: repository-url
+      value: $(body.pull_request.head.repo.clone_url)
+    - name: revision
+      value: $(body.pull_request.head.ref)
+    - name: ref
+      value: $(body.pull_request.base.ref)
+    - name: event-type
+      value: $(header['x-github-event'])
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener
@@ -58,7 +73,25 @@ metadata:
 spec:
   triggers:
     - name: on-push
+      interceptors:
+        - ref:
+            name: cel
+          params:
+            - name: filter
+              value: "header['x-github-event'] == 'push'"
       bindings:
-        - ref: ci-binding
+        - ref: ci-binding-push
+      template:
+        ref: push-template
+
+    - name: on-pr
+      interceptors:
+        - ref:
+            name: cel
+          params:
+            - name: filter
+              value: "header['x-github-event'] == 'pull_request' && (body.action == 'opened' || body.action == 'synchronize' || body.action == 'reopened')"
+      bindings:
+        - ref: ci-binding-pr
       template:
         ref: push-template
