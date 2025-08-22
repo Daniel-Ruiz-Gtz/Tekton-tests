@@ -1,120 +1,101 @@
-apiVersion: tekton.dev/v1beta1
+---
+apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
-  name: lint-template
+  name: ci-template
 spec:
   params:
-    - name: repository
-    - name: revision
+    - name: repository-url
+    - name: ref                  
+    - name: event-type           
+    - name: action               
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        generateName: lint-pipeline-run-
+        generateName: ci-pipeline-run-
       spec:
         pipelineRef:
-          name: lint-pipeline
+          name: ci-pipeline
+        params:
+          - name: repository-url
+            value: $(tt.params.repository-url)
+          - name: ref
+            value: $(tt.params.ref)
+          - name: event-type
+            value: $(tt.params.event-type)
+          - name: action
+            value: $(tt.params.action)
         workspaces:
           - name: shared-workspace
             volumeClaimTemplate:
               metadata:
-                name: lint-pvc
+                name: ci-ws
               spec:
                 accessModes: ["ReadWriteOnce"]
                 resources:
                   requests:
                     storage: 1Gi
-        params:
-          - name: repository
-            value: $(params.repository)
-          - name: revision
-            value: $(params.revision)
 
 ---
-apiVersion: tekton.dev/v1beta1
-kind: TriggerTemplate
-metadata:
-  name: deploy-template
-spec:
-  params:
-    - name: repository
-    - name: revision
-  resourcetemplates:
-    - apiVersion: tekton.dev/v1beta1
-      kind: PipelineRun
-      metadata:
-        generateName: deploy-pipeline-run-
-      spec:
-        pipelineRef:
-          name: deploy-pipeline
-        workspaces:
-          - name: shared-workspace
-            volumeClaimTemplate:
-              metadata:
-                name: deploy-pvc
-              spec:
-                accessModes: ["ReadWriteOnce"]
-                resources:
-                  requests:
-                    storage: 1Gi
-        params:
-          - name: repository
-            value: $(params.repository)
-          - name: revision
-            value: $(params.revision)
-
----
-apiVersion: tekton.dev/v1beta1
+apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: lint-binding
+  name: push-binding
 spec:
   params:
-    - name: repository
-      value: "https://github.com/Daniel-Ruiz-Gtz/Tekton-tests"
-    - name: revision
-      value: "main"
+    - name: repository-url
+      value: $(body.repository.clone_url)
+    - name: ref
+      value: $(body.ref)                     
+    - name: event-type
+      value: $(header.X-GitHub-Event)        
+    - name: action
+      value: ""                             
 
 ---
-apiVersion: tekton.dev/v1beta1
+apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
-  name: deploy-binding
+  name: pr-binding
 spec:
   params:
-    - name: repository
-      value: "https://github.com/Daniel-Ruiz-Gtz/Tekton-tests"
-    - name: revision
-      value: "main"
+    - name: repository-url
+      value: $(body.pull_request.head.repo.clone_url)
+    - name: ref
+      value: $(body.pull_request.head.ref)  
+    - name: event-type
+      value: $(header.X-GitHub-Event)        
+    - name: action
+      value: $(body.action)                  
 
 ---
-apiVersion: tekton.dev/v1beta1
+apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener
 metadata:
   name: ci-listener
 spec:
+  serviceAccountName: tekton-triggers-sa
   triggers:
     - name: pr-lint
       bindings:
-        - ref: lint-binding
+        - ref: pr-binding
       template:
-        ref: lint-template
+        ref: ci-template
       interceptors:
         - ref:
             name: github
           params:
             - name: eventTypes
-              value:
-                - pull_request
+              value: [ "pull_request" ]
     - name: push-deploy
       bindings:
-        - ref: deploy-binding
+        - ref: push-binding
       template:
-        ref: deploy-template
+        ref: ci-template
       interceptors:
         - ref:
             name: github
           params:
             - name: eventTypes
-              value:
-                - push
+              value: [ "push" ]
