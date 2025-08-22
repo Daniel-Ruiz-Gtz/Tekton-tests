@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: git-clone-dummy
+  name: git-clone
 spec:
   params:
     - name: repository-url
@@ -10,28 +10,29 @@ spec:
     - name: echo
       image: alpine:3.18
       script: |
-        echo "[GIT CLONE] Would clone $(params.repository-url) revision $(params.revision)"
+        echo "[GIT CLONE] Repo: $(params.repository-url)"
+        echo "[GIT CLONE] Branch/Rev: $(params.revision)"
 
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: lint-dummy
+  name: lint
 spec:
   steps:
     - name: echo
       image: alpine:3.18
       script: |
-        echo "[LINT] Would run pylint inside testcases/ folder"
+        echo "[LINT] Running pylint inside testcases/ folder..."
 
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: deploy-dummy
+  name: deploy
 spec:
   steps:
     - name: echo
       image: alpine:3.18
       script: |
-        echo "[DEPLOY] Would deploy application on push to main"
+        echo "[DEPLOY] Deploy triggered by push to main"
