@@ -10,10 +10,13 @@ spec:
       type: string
     - name: ref
       type: string
+      default: ""
     - name: event-type
       type: string
+      default: ""
     - name: action
       type: string
+      default: ""
   workspaces:
     - name: shared-workspace
   tasks:
@@ -28,29 +31,28 @@ spec:
       workspaces:
         - name: output
           workspace: shared-workspace
+
     - name: lint
-      runAfter: [ git-clone ]
+      runAfter: [git-clone]
       when:
         - input: "$(params.event-type)"
-          operator: in
+          operator: In
           values: ["pull_request"]
         - input: "$(params.action)"
-          operator: in
+          operator: In
           values: ["opened","synchronize","reopened"]
       taskRef:
         name: lint-task
       workspaces:
         - name: source
           workspace: shared-workspace
+
     - name: deploy
-      runAfter: [ git-clone ]
+      runAfter: [git-clone]
       when:
-        - input: "$(params.event-type)"
-          operator: in
-          values: ["push"]
-        - input: "$(params.ref)"
-          operator: in
-          values: ["refs/heads/main"]
+        - input: "$(params.revision)"
+          operator: In
+          values: ["main"]
       taskRef:
         name: deploy-task
       workspaces:
