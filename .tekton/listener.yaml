@@ -1,7 +1,7 @@
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
 metadata:
-  name: push-template
+  name: ci-template
 spec:
   params:
     - name: repository-url
@@ -12,10 +12,10 @@ spec:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        generateName: push-pipeline-run-
+        generateName: ci-pipeline-run-
       spec:
         pipelineRef:
-          name: push-pipeline
+          name: ci-pipeline
         params:
           - name: repository-url
             value: $(tt.params.repository-url)
@@ -29,9 +29,10 @@ spec:
           - name: shared-workspace
             volumeClaimTemplate:
               metadata:
-                name: push-ws
+                name: ci-ws
               spec:
-                accessModes: ["ReadWriteOnce"]
+                accessModes:
+                  - ReadWriteOnce
                 resources:
                   requests:
                     storage: 1Gi
@@ -49,7 +50,7 @@ spec:
     - name: ref
       value: $(body.ref)
     - name: event-type
-      value: $(header['x-github-event'])
+      value: "$(header['x-github-event'])"
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
@@ -64,7 +65,7 @@ spec:
     - name: ref
       value: $(body.pull_request.base.ref)
     - name: event-type
-      value: $(header['x-github-event'])
+      value: "$(header['x-github-event'])"
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener
@@ -82,8 +83,7 @@ spec:
       bindings:
         - ref: ci-binding-push
       template:
-        ref: push-template
-
+        ref: ci-template
     - name: on-pr
       interceptors:
         - ref:
@@ -94,4 +94,4 @@ spec:
       bindings:
         - ref: ci-binding-pr
       template:
-        ref: push-template
+        ref: ci-template

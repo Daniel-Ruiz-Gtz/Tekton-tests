@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: push-pipeline
+  name: ci-pipeline
 spec:
   params:
     - name: repository-url
@@ -31,7 +31,7 @@ spec:
     - name: git-clone
       runAfter: [show-params]
       when:
-        - input: "$(params.event-type)"
+        - input: $(params.event-type)
           operator: in
           values: ["pull_request"]
       taskRef:
@@ -48,7 +48,7 @@ spec:
     - name: lint
       runAfter: [git-clone]
       when:
-        - input: "$(params.event-type)"
+        - input: $(params.event-type)
           operator: in
           values: ["pull_request"]
       taskRef:
@@ -63,10 +63,10 @@ spec:
     - name: deploy
       runAfter: [show-params]
       when:
-        - input: "$(params.event-type)"
+        - input: $(params.event-type)
           operator: in
           values: ["push"]
-        - input: "$(params.ref)"
+        - input: $(params.ref)
           operator: in
           values: ["refs/heads/main"]
       taskRef:
