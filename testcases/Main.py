@@ -7,7 +7,7 @@ def main():
     print(f"Double of {number} is {number * 2}")
     print(f"NEW CHANGE 2")
     print(f"PR AND PUSH TO MAIN")
-    print(f"Testing Push main V5")
+    print(f"Testing PR")
 
 if __name__ == "__main__":
     main()
