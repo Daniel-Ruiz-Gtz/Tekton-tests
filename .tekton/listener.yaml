@@ -48,8 +48,6 @@ spec:
       value: $(body.repository.default_branch)
     - name: ref
       value: $(body.ref)
-    - name: event-type
-      value: "$(header['X-GitHub-Event'])"
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
@@ -63,8 +61,6 @@ spec:
       value: $(body.pull_request.head.ref)
     - name: ref
       value: $(body.pull_request.base.ref)
-    - name: event-type
-      value: "$(header['X-GitHub-Event'])"
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener
@@ -73,9 +69,13 @@ metadata:
 spec:
   serviceAccountName: pipeline
   triggers:
+    # === Deploy: PUSH a main ===
     - name: on-push-main
       bindings:
         - ref: ci-binding-push
+        # binding embebido: fija el tipo de evento
+        - name: event-type
+          value: push
       interceptors:
         - ref:
             name: github
@@ -95,9 +95,13 @@ spec:
       template:
         ref: ci-template
 
+    # === Lint: PR opened/synchronize/reopened ===
     - name: on-pr-lint
       bindings:
         - ref: ci-binding-pr
+        # binding embebido: fija el tipo de evento
+        - name: event-type
+          value: pull_request
       interceptors:
         - ref:
             name: github
