@@ -16,61 +16,39 @@ spec:
     - name: shared-workspace
   tasks:
     - name: show-params
-      taskRef:
-        name: show-params-task
+      taskRef: { name: show-params-task }
       params:
-        - name: repository-url
-          value: $(params.repository-url)
-        - name: revision
-          value: $(params.revision)
-        - name: ref
-          value: $(params.ref)
-        - name: event-type
-          value: $(params.event-type)
+        - { name: repository-url, value: $(params.repository-url) }
+        - { name: revision,       value: $(params.revision) }
+        - { name: ref,            value: $(params.ref) }
+        - { name: event-type,     value: $(params.event-type) }
 
     - name: git-clone
       runAfter: [show-params]
       when:
-        - input: $(params.event-type)
-          operator: in
-          values: ["pull_request"]
-      taskRef:
-        name: git-clone-task
+        - { input: $(params.event-type), operator: in, values: ["pull_request"] }
+      taskRef: { name: git-clone-task }
       params:
-        - name: url
-          value: $(params.repository-url)
-        - name: rev
-          value: $(params.revision)
+        - { name: url, value: $(params.repository-url) }
+        - { name: rev, value: $(params.revision) }
       workspaces:
-        - name: output
-          workspace: shared-workspace
+        - { name: output, workspace: shared-workspace }
 
     - name: lint
       runAfter: [git-clone]
       when:
-        - input: $(params.event-type)
-          operator: in
-          values: ["pull_request"]
-      taskRef:
-        name: lint-task
+        - { input: $(params.event-type), operator: in, values: ["pull_request"] }
+      taskRef: { name: lint-task }
       params:
-        - name: repository-url
-          value: $(params.repository-url)
+        - { name: repository-url, value: $(params.repository-url) }
       workspaces:
-        - name: source
-          workspace: shared-workspace
+        - { name: source, workspace: shared-workspace }
 
     - name: deploy
       runAfter: [show-params]
       when:
-        - input: $(params.event-type)
-          operator: in
-          values: ["push"]
-        - input: $(params.ref)
-          operator: in
-          values: ["refs/heads/main"]
-      taskRef:
-        name: deploy-task
+        - { input: $(params.event-type), operator: in, values: ["push"] }
+        - { input: $(params.ref),        operator: in, values: ["refs/heads/main"] }
+      taskRef: { name: deploy-task }
       workspaces:
-        - name: source
-          workspace: shared-workspace
+        - { name: source, workspace: shared-workspace }

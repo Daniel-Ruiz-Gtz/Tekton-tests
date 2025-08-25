@@ -69,53 +69,39 @@ metadata:
 spec:
   serviceAccountName: pipeline
   triggers:
-    # === Deploy: PUSH a main ===
+    # === Deploy: JUST push a main ===
     - name: on-push-main
       bindings:
         - ref: ci-binding-push
-        # binding embebido: fija el tipo de evento
         - name: event-type
           value: push
       interceptors:
         - ref:
-            name: github
-            kind: ClusterInterceptor
-          params:
-            - name: eventTypes
-              value: ["push"]
-        - ref:
             name: cel
             kind: ClusterInterceptor
           params:
             - name: filter
               value: >-
-                header.match('X-GitHub-Event','push') &&
-                body.ref == 'refs/heads/main' &&
-                !body.deleted
+                !has(body.pull_request) &&       
+                body.ref == 'refs/heads/main' && 
+                !body.deleted                    
       template:
         ref: ci-template
 
-    # === Lint: PR opened/synchronize/reopened ===
+    # === Lint: JUST PR opened/synchronize/reopened ===
     - name: on-pr-lint
       bindings:
         - ref: ci-binding-pr
-        # binding embebido: fija el tipo de evento
         - name: event-type
           value: pull_request
       interceptors:
         - ref:
-            name: github
-            kind: ClusterInterceptor
-          params:
-            - name: eventTypes
-              value: ["pull_request"]
-        - ref:
             name: cel
             kind: ClusterInterceptor
           params:
             - name: filter
               value: >-
-                header.match('X-GitHub-Event','pull_request') &&
+                has(body.pull_request) &&
                 (body.action in ['opened','synchronize','reopened'])
       template:
         ref: ci-template
