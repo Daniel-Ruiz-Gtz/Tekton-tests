@@ -1,0 +1,69 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: ci-template-pr
+spec:
+  params:
+    - name: repository-url
+    - name: revision
+    - name: ref
+    - name: event-type
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: ci-pipeline-run-
+      spec:
+        pipelineRef: { name: ci-pipeline }
+        params:
+          - { name: repository-url, value: $(tt.params.repository-url) }
+          - { name: revision,       value: $(tt.params.revision) }
+          - { name: ref,            value: $(tt.params.ref) }
+          - { name: event-type,     value: $(tt.params.event-type) }
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              metadata: { name: ci-ws }
+              spec:
+                accessModes: ["ReadWriteOnce"]
+                resources: { requests: { storage: 1Gi } }
+
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: ci-binding-pr
+spec:
+  params:
+    - { name: repository-url, value: $(body.pull_request.head.repo.clone_url) }
+    - { name: revision,       value: $(body.pull_request.head.ref) }
+    - { name: ref,            value: $(body.pull_request.base.ref) }
+
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: ci-listener-pr
+spec:
+  replicas: 1
+  serviceAccountName: pipeline
+  triggers:
+    - name: on-pr-lint
+      bindings:
+        - ref: ci-binding-pr
+        - name: event-type
+          value: pull_request
+      interceptors:
+        - ref: { name: cel, kind: ClusterInterceptor }
+          params:
+            - name: filter
+              value: >-
+                has(body.pull_request) &&
+                (body.action in ['opened','synchronize','reopened']) &&
+                has(body.pull_request.head) &&
+                has(body.pull_request.head.repo) &&
+                has(body.pull_request.head.repo.clone_url) &&
+                has(body.pull_request.head.ref) &&
+                has(body.pull_request.base) &&
+                has(body.pull_request.base.ref)
+      template: { ref: ci-template-pr }

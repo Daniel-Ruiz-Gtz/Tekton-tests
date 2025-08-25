@@ -1,0 +1,64 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: ci-template-push
+spec:
+  params:
+    - name: repository-url
+    - name: revision
+    - name: ref
+    - name: event-type
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: ci-pipeline-run-
+      spec:
+        pipelineRef: { name: ci-pipeline }
+        params:
+          - { name: repository-url, value: $(tt.params.repository-url) }
+          - { name: revision,       value: $(tt.params.revision) }
+          - { name: ref,            value: $(tt.params.ref) }
+          - { name: event-type,     value: $(tt.params.event-type) }
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              metadata: { name: ci-ws }
+              spec:
+                accessModes: ["ReadWriteOnce"]
+                resources: { requests: { storage: 1Gi } }
+
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: ci-binding-push
+spec:
+  params:
+    - { name: repository-url, value: $(body.repository.clone_url) }
+    - { name: revision,       value: $(body.repository.default_branch) }
+    - { name: ref,            value: $(body.ref) }
+
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: ci-listener-push
+spec:
+  replicas: 1
+  serviceAccountName: pipeline
+  triggers:
+    - name: on-push-main
+      bindings:
+        - ref: ci-binding-push
+        - name: event-type
+          value: push
+      interceptors:
+        - ref: { name: cel, kind: ClusterInterceptor }
+          params:
+            - name: filter
+              value: >-
+                !has(body.pull_request) &&
+                body.ref == 'refs/heads/main' &&
+                !body.deleted
+      template: { ref: ci-template-push }
