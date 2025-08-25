@@ -102,6 +102,12 @@ spec:
             - name: filter
               value: >-
                 has(body.pull_request) &&
-                (body.action in ['opened','synchronize','reopened'])
+                (body.action in ['opened','synchronize','reopened']) &&
+                has(body.pull_request.head) &&
+                has(body.pull_request.head.repo) &&
+                has(body.pull_request.head.repo.clone_url) &&
+                has(body.pull_request.head.ref) &&
+                has(body.pull_request.base) &&
+                has(body.pull_request.base.ref)
       template:
         ref: ci-template
