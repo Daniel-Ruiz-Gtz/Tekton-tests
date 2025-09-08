@@ -25,8 +25,6 @@ spec:
 
     - name: git-clone
       runAfter: [show-params]
-      when:
-        - { input: $(params.event-type), operator: in, values: ["pull_request"] }
       taskRef: { name: git-clone-task }
       params:
         - { name: url, value: $(params.repository-url) }
