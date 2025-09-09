@@ -1,0 +1,3 @@
+# Python pip packages required
+
+pylint == 2.17.4

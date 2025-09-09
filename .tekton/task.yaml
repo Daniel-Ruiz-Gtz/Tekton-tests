@@ -36,10 +36,15 @@ spec:
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
-        echo ">>> [GIT CLONE DUMMY]"
+        set -e
+        echo ">>> [PARAMS]"
         echo "URL=$(params.url)"
         echo "REV=$(params.rev)"
-        echo "TARGET=$(workspaces.output.path)/source"
+        echo "TARGET=$(workspaces.output.path)"
+        echo ">>> Installing Git..."
+        yum install -y git
+        echo ">>> Cloning Repo..."
+        git clone --branch "$revision" "$repository_url"
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -54,12 +59,18 @@ spec:
   steps:
     - name: run-lint
       image: python:3.10
-      workingDir: $(workspaces.source.path)
+      workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
-        echo ">>> [LINT DUMMY]"
+        set -e
+        echo ">>> [PARAMS]"
         echo "Repo=$(params.repository-url)"
-        echo "Workspace=$(workspaces.source.path)"
+        echo "Workspace=$(workspaces.output.path)"
+        echo ">>> Installing requirements.txt..."
+        pip3 install -r requirements.txt
+        echo ">>> Installing Make..."
+        yum install -y make
+        echo ">>> Running Lint..."
         make lint
 
 ---
@@ -73,8 +84,11 @@ spec:
   steps:
     - name: echo-deploy
       image: alpine:3.19
-      workingDir: $(workspaces.source.path)
+      workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
         echo ">>> [DEPLOY DUMMY] running for push to refs/heads/main"
+        echo ">>> Installing Make..."
+        yum install -y make
+        echo ">>> Running Deploy..."
         make deploy

@@ -11,7 +11,7 @@ PYLINT_FLAGS := --rcfile=.pylintrc
 AVOCADO_PACKAGES := test/avocado/testcases/*
 
 # Deployment info
-SERVERS ?= 9.11.56.44
+SERVERS ?= 9.99.99.99
 
 # Recipies
 .PHONY: lint
