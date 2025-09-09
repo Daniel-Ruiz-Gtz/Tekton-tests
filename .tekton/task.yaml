@@ -32,7 +32,7 @@ spec:
     - name: output
   steps:
     - name: echo-clone
-      image: alpine:3.19
+      image: 'registry.access.redhat.com/ubi9/ubi-minimal:latest'
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
@@ -58,7 +58,7 @@ spec:
     - name: source
   steps:
     - name: run-lint
-      image: python:3.10
+      image: 'registry.access.redhat.com/ubi9/python-311'
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
@@ -83,7 +83,7 @@ spec:
     - name: source
   steps:
     - name: echo-deploy
-      image: alpine:3.19
+      image: 'registry.access.redhat.com/ubi9/ubi-minimal:latest'
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
