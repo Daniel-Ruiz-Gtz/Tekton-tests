@@ -32,7 +32,7 @@ spec:
     - name: output
   steps:
     - name: echo-clone
-      image: 'registry.access.redhat.com/ubi9/ubi-minimal:latest'
+      image: 'registry.access.redhat.com/ubi9/ubi-minimal:9.6'
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
@@ -42,9 +42,9 @@ spec:
         echo "REV=$(params.rev)"
         echo "TARGET=$(workspaces.output.path)"
         echo ">>> Installing Git..."
-        dnf install -y git
-        echo ">>> Cloning Repo..."
-        git clone --branch "$revision" "$repository_url"
+        microdnf install -y git && microdnf clean all
+        echo ">>> Cloning Repo into $TARGET ..."
+        git clone --branch "$(params.rev)" "$(params.url)" .
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -55,10 +55,10 @@ spec:
   params:
     - name: repository-url
   workspaces:
-    - name: source
+    - name: output
   steps:
     - name: run-lint
-      image: 'registry.access.redhat.com/ubi9/python-311'
+      image: 'registry.access.redhat.com/ubi9/python-311:9.6'
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
@@ -69,7 +69,7 @@ spec:
         echo ">>> Installing requirements.txt..."
         pip3 install -r requirements.txt
         echo ">>> Installing Make..."
-        dnf install -y make
+        microdnf install -y make && microdnf clean all
         echo ">>> Running Lint..."
         make lint
 
@@ -80,15 +80,16 @@ metadata:
   name: deploy-task
 spec:
   workspaces:
-    - name: source
+    - name: output
   steps:
     - name: echo-deploy
-      image: 'registry.access.redhat.com/ubi9/ubi-minimal:latest'
+      image: 'registry.access.redhat.com/ubi9/ubi-minimal:9.6'
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
+        set -e
         echo ">>> [DEPLOY DUMMY] running for push to refs/heads/main"
         echo ">>> Installing Make..."
-        dnf install -y make
+        microdnf install -y make && microdnf clean all
         echo ">>> Running Deploy..."
         make deploy
