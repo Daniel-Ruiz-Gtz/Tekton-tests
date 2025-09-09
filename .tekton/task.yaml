@@ -42,7 +42,7 @@ spec:
         echo "REV=$(params.rev)"
         echo "TARGET=$(workspaces.output.path)"
         echo ">>> Installing Git..."
-        yum install -y git
+        dnf install -y git
         echo ">>> Cloning Repo..."
         git clone --branch "$revision" "$repository_url"
 
@@ -69,7 +69,7 @@ spec:
         echo ">>> Installing requirements.txt..."
         pip3 install -r requirements.txt
         echo ">>> Installing Make..."
-        yum install -y make
+        dnf install -y make
         echo ">>> Running Lint..."
         make lint
 
@@ -89,6 +89,6 @@ spec:
         #!/bin/sh
         echo ">>> [DEPLOY DUMMY] running for push to refs/heads/main"
         echo ">>> Installing Make..."
-        yum install -y make
+        dnf install -y make
         echo ">>> Running Deploy..."
         make deploy
