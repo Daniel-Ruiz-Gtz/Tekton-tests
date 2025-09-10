@@ -64,7 +64,6 @@ spec:
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
-        set -e
         echo ">>> [PARAMS]"
         echo "Repo=$(params.repository-url)"
         echo "Workspace=$(workspaces.output.path)"
