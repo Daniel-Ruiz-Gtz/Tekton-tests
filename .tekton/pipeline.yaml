@@ -40,7 +40,7 @@ spec:
       params:
         - { name: repository-url, value: $(params.repository-url) }
       workspaces:
-        - { name: source, workspace: shared-workspace }
+        - { name: output, workspace: shared-workspace }
 
     - name: deploy
       runAfter: [show-params]
@@ -49,4 +49,4 @@ spec:
         - { input: $(params.ref),        operator: in, values: ["refs/heads/main"] }
       taskRef: { name: deploy-task }
       workspaces:
-        - { name: source, workspace: shared-workspace }
+        - { name: output, workspace: shared-workspace }
