@@ -46,6 +46,7 @@ spec:
         echo ">>> Cloning Repo into $TARGET ..."
         rm -rf ./* ./.??*
         git clone --branch "$(params.rev)" "$(params.url)" .
+        ls -lrt
 
 ---
 apiVersion: tekton.dev/v1beta1
