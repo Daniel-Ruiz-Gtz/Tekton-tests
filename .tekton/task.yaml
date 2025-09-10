@@ -44,7 +44,7 @@ spec:
         echo ">>> Installing Git..."
         microdnf install -y git && microdnf clean all
         echo ">>> Cloning Repo into $TARGET ..."
-        rm -rf .
+        rm -rf ./* ./.??*
         git clone --branch "$(params.rev)" "$(params.url)" .
 
 ---
