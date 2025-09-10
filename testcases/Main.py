@@ -8,7 +8,7 @@ def main():
     print(f"NEW CHANGE 2")
     print(f"PR AND PUSH TO MAIN")
     print(f"Testing Updating PR")
-    print(f"MAKE FILE TEST V2")
+    print(f"MAKE FILE TEST V3")
 
 if __name__ == "__main__":
     main()
