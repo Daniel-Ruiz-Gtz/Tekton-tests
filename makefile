@@ -8,7 +8,7 @@ PYLINT = $(PYTHON) -m pylint
 PYLINT_FLAGS := --rcfile=.pylintrc
 
 # Avocado tests info
-AVOCADO_PACKAGES := test/avocado/testcases/*
+AVOCADO_PACKAGES := testcases/*
 
 # Deployment info
 SERVERS ?= 9.99.99.99
