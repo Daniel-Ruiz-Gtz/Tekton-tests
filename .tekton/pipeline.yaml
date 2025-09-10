@@ -43,7 +43,7 @@ spec:
         - { name: output, workspace: shared-workspace }
 
     - name: deploy
-      runAfter: [show-params]
+      runAfter: [git-clone]
       when:
         - { input: $(params.event-type), operator: in, values: ["push"] }
         - { input: $(params.ref),        operator: in, values: ["refs/heads/main"] }
