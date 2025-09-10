@@ -18,6 +18,7 @@ SERVERS ?= 9.99.99.99
 lint:
 	@echo "Running Lint check"
 	@$(PYLINT) $(PYLINT_FLAGS) $(AVOCADO_PACKAGES)
+	@echo "Linting Completed"
 
 .PHONY: deploy
 deploy:
