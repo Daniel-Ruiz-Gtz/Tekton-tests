@@ -1,52 +1,35 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: show-params-task
+  name: git-clone-task
 spec:
   params:
     - name: repository-url
     - name: revision
-    - name: ref
-    - name: event-type
-  steps:
-    - name: echo-params
-      image: alpine:3.19
-      script: |
-        #!/bin/sh
-        echo ">>> [SHOW PARAMS]"
-        echo "repository-url=$(params.repository-url)"
-        echo "revision=$(params.revision)"
-        echo "ref=$(params.ref)"
-        echo "event-type=$(params.event-type)"
-
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: git-clone-task
-spec:
-  params:
-    - name: url
-    - name: rev
   workspaces:
     - name: output
   steps:
     - name: echo-clone
       image: 'registry.access.redhat.com/ubi9/ubi-minimal:9.6'
       workingDir: $(workspaces.output.path)
+      env:
+        - name: repository_url
+          value: $(params.repository-url)
+        - name: revision
+          value: $(params.revision)
+        - name: target
+          value: $(workspaces.output.path)/source
       script: |
         #!/bin/sh
         set -e
-        echo ">>> [PARAMS]"
-        echo "URL=$(params.url)"
-        echo "REV=$(params.rev)"
-        echo "TARGET=$(workspaces.output.path)"
-        echo ">>> Installing Git..."
-        microdnf install -y git && microdnf clean all
-        echo ">>> Cloning Repo into $TARGET ..."
+        microdnf install -y -q git && microdnf clean all
+        echo "Cloning repository..."
+        echo "Repository URL: $repository_url"
+        echo "Revision: $revision"
+        echo "Target directory: $target"
         rm -rf ./* ./.??*
-        git clone --branch "$(params.rev)" "$(params.url)" .
-        ls -lrt
+        mkdir -p "$target"
+        git clone --branch "$revision" "$repository_url" "$target"
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -61,17 +44,20 @@ spec:
   steps:
     - name: run-lint
       image: 'registry.access.redhat.com/ubi9/python-311:9.6'
-      workingDir: $(workspaces.output.path)
+      workingDir: $(workspaces.output.path)/source
+      env:
+        - name: repository_url
+          value: $(params.repository-url)
+        - name: workspace
+          value: $(workspaces.output.path)/source
       script: |
         #!/bin/sh
-        echo ">>> [PARAMS]"
-        echo "Repo=$(params.repository-url)"
-        echo "Workspace=$(workspaces.output.path)"
-        echo ">>> Installing requirements.txt..."
+        set -e
+        echo "Installing dependencies..."
         pip3 install -r requirements.txt
-        echo ">>> Installing Make..."
-        microdnf install -y make && microdnf clean all
-        echo ">>> Running Lint..."
+        echo "Installing make..."
+        microdnf install -y -q make && microdnf clean all
+        echo "Running lint..."
         make lint
 
 ---
@@ -85,12 +71,7 @@ spec:
   steps:
     - name: echo-deploy
       image: 'registry.access.redhat.com/ubi9/ubi-minimal:9.6'
-      workingDir: $(workspaces.output.path)
+      workingDir: $(workspaces.output.path)/source
       script: |
         #!/bin/sh
-        set -e
-        echo ">>> [DEPLOY DUMMY] running for push to refs/heads/main"
-        echo ">>> Installing Make..."
-        microdnf install -y make && microdnf clean all
-        echo ">>> Running Deploy..."
         make deploy
