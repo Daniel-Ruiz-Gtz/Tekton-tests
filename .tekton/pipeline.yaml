@@ -6,47 +6,63 @@ spec:
   params:
     - name: repository-url
       type: string
+      description: The URL of the Git repository to clone.
     - name: revision
       type: string
+      description: The branch or tag to checkout.
     - name: ref
       type: string
+      description: The git ref that triggered the pipeline.
     - name: event-type
       type: string
+      description: The type of event that triggered the pipeline.
   workspaces:
     - name: shared-workspace
-  tasks:
-    - name: show-params
-      taskRef: { name: show-params-task }
-      params:
-        - { name: repository-url, value: $(params.repository-url) }
-        - { name: revision,       value: $(params.revision) }
-        - { name: ref,            value: $(params.ref) }
-        - { name: event-type,     value: $(params.event-type) }
 
+  tasks:
     - name: git-clone
-      runAfter: [show-params]
-      taskRef: { name: git-clone-task }
+      description: Clone the Git repository.
+      taskRef:
+        name: git-clone-task
       params:
-        - { name: url, value: $(params.repository-url) }
-        - { name: rev, value: $(params.revision) }
+        - name: repository-url
+          value: $(params.repository-url)
+        - name: revision
+          value: $(params.revision)
       workspaces:
-        - { name: output, workspace: shared-workspace }
+        - name: output
+          workspace: shared-workspace
 
     - name: lint
-      runAfter: [git-clone]
+      description: Run linting on the source code.
+      taskRef:
+        name: lint-task
+      runAfter: 
+        - git-clone
       when:
-        - { input: $(params.event-type), operator: in, values: ["pull_request"] }
-      taskRef: { name: lint-task }
+        - input: $(params.event-type)
+          operator: in
+          values: ["pull_request"]
       params:
-        - { name: repository-url, value: $(params.repository-url) }
+        - name: repository-url
+          value: $(params.repository-url)
       workspaces:
-        - { name: output, workspace: shared-workspace }
+        - name: output
+          workspace: shared-workspace
 
     - name: deploy
-      runAfter: [git-clone]
+      description: Deploy the application.
+      taskRef:
+        name: deploy-task
+      runAfter:
+        - lint
       when:
-        - { input: $(params.event-type), operator: in, values: ["push"] }
-        - { input: $(params.ref),        operator: in, values: ["refs/heads/main"] }
-      taskRef: { name: deploy-task }
+        - input: $(params.event-type)
+          operator: in
+          values: ["push"]
+        - input: $(params.ref)
+          operator: in
+          values: ["refs/heads/main"]
       workspaces:
-        - { name: output, workspace: shared-workspace }
+        - name: output
+          workspace: shared-workspace
