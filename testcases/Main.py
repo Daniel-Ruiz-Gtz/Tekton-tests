@@ -36,7 +36,7 @@ def main() -> None:
     print("NEW CHANGE 2")
     print("PR AND PUSH TO MAIN")
     print("Testing Updating PR")
-    print("MAKE FILE TEST V5")
+    print("MAKE FILE TEST V6")
 
 
 if __name__ == "__main__":
