@@ -17,19 +17,15 @@ spec:
           value: $(params.repository-url)
         - name: revision
           value: $(params.revision)
-        - name: target
-          value: $(workspaces.output.path)
       script: |
         #!/bin/sh
         set -e
-        microdnf install -y -q git && microdnf clean all
+        microdnf install -y git && microdnf clean all
         echo "Cloning repository..."
         echo "Repository URL: $repository_url"
         echo "Revision: $revision"
-        echo "Target directory: $target"
         rm -rf ./* ./.??*
-        mkdir -p "$target"
-        git clone --branch "$revision" "$repository_url" "$target"
+        git clone --branch "$revision" "$repository_url" .
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -56,8 +52,7 @@ spec:
         echo "Installing dependencies..."
         pip3 install -r requirements.txt
         echo "Installing make..."
-        microdnf install -y -q make && microdnf clean all
-        echo "Running lint..."
+        microdnf install -y make && microdnf clean all
         make lint
 
 ---
@@ -74,4 +69,6 @@ spec:
       workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
+        echo "Installing make..."
+        microdnf install -y make && microdnf clean all
         make deploy
