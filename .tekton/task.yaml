@@ -26,6 +26,7 @@ spec:
         echo "Revision: $revision"
         rm -rf ./* ./.??*
         git clone --branch "$revision" "$repository_url" .
+        ls -lrt
 
 ---
 apiVersion: tekton.dev/v1beta1
