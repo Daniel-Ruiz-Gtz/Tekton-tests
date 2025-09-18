@@ -18,7 +18,7 @@ spec:
         - name: revision
           value: $(params.revision)
         - name: target
-          value: $(workspaces.output.path)/source
+          value: $(workspaces.output.path)
       script: |
         #!/bin/sh
         set -e
@@ -44,12 +44,12 @@ spec:
   steps:
     - name: run-lint
       image: 'registry.access.redhat.com/ubi9/python-311:9.6'
-      workingDir: $(workspaces.output.path)/source
+      workingDir: $(workspaces.output.path)
       env:
         - name: repository_url
           value: $(params.repository-url)
         - name: workspace
-          value: $(workspaces.output.path)/source
+          value: $(workspaces.output.path)
       script: |
         #!/bin/sh
         set -e
@@ -71,7 +71,7 @@ spec:
   steps:
     - name: echo-deploy
       image: 'registry.access.redhat.com/ubi9/ubi-minimal:9.6'
-      workingDir: $(workspaces.output.path)/source
+      workingDir: $(workspaces.output.path)
       script: |
         #!/bin/sh
         make deploy

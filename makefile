@@ -7,6 +7,9 @@ PYTHON = python3
 PYLINT = $(PYTHON) -m pylint
 PYLINT_FLAGS := --rcfile=.pylintrc
 
+# Avocado packages
+AVOCADO_PACKAGES = testcases/*
+
 # Deployment info
 SERVERS ?= 9.99.99.99
 
@@ -16,7 +19,7 @@ lint:
 	@echo "Running Lint check"
 	@echo "Repository:$$repository_url"
 	@echo "Workspace:$$workspace"
-	@$(PYLINT) $(PYLINT_FLAGS) $$workspace/testcases
+	@$(PYLINT) $(PYLINT_FLAGS) $(AVOCADO_PACKAGES)
 	@echo "Linting Completed"
 
 .PHONY: deploy
